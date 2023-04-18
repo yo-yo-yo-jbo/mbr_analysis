@@ -116,7 +116,7 @@ routine_print_char:
 ; Data
 ;
 data_my_msg:
-	db "Hello world", 0
+	db "Hello b00t", 0
 
 ;
 ; Fill sector data with zeros and last two bytes to be 0x55, 0xAA
