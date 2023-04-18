@@ -11,7 +11,8 @@ After all the testing and configuration done, the BIOS will compare all storage 
 The BIOS reads the first sector (512 bytes) of the device and compares the last 2 bytes to the bytes `\x55\xAA` - if they're there then: that sector (512 bytes) is loaded to address `0x7C00`. Note this is done in Intel real mode, which means that:
 1. Memory is segmented - we touch physical RAM with segments, done with special registers (`cs`, `ds`, `es`, `ss`).
 2. We usually refer to 16-bit registers (e.g. `ax`, `bx` and so on).
-Well, that 512 byte sector ending with `\x55\xAA` is referred as the `MBR`, which stands for `Master Boot Record`.
+Well, that 512 byte sector ending with `\x55\xAA` is referred as the `MBR`, which stands for `Master Boot Record`.  
+Normally, the `MBR` runs code that reads further chunks from the bootable disk and loads a second stage `bootloader` (such as `grub2` or `winload`), which is responsible of setting up virtual memory (unless we're talking about a very old OS) and loading an eventual kernel from the disk.
 
 ## Experiment - viewing your MBR
 To support both UEFI and old MBR, Windows sets up the MBR. You can dump it even with Python (run elevated):
