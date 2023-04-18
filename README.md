@@ -275,3 +275,5 @@ Let's examine what we've done:
 - We then use a similar trick - this time `di` points to the interrupt entry (`0x20`) and we store `ax` there with `stosw` - once for the `ip` register (which points to our `routine_timer_hook` routine) and once for `cs` (which will get 0 using self-`xor`ing).
 - After printing a message, we use `sti` to enable interrupts again, and then hang forever.
 - The `routine_timer_hook` routine is quite simple: it prints a message and then calls the original routine that was saved in `data_original_isr`, by pushing the old entry's `cs` and `ip` registers to the stack and then performing `retf`, which pops those two values into `cs:ip`.
+
+Note that hooking the interrupt vector table was used in the past extensively for bootkit purposes.
