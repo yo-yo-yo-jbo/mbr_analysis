@@ -277,7 +277,7 @@ Let's examine what we've done:
 - The `routine_timer_hook` routine is quite simple: it prints a message and then calls the original routine that was saved in `data_original_isr`, by pushing the old entry's `cs` and `ip` registers to the stack and then performing `retf`, which pops those two values into `cs:ip`.
 
 Note that hooking the interrupt vector table was used in the past extensively for bootkit purposes.  
-I've added this entire code as a sepeate file in this repository [here](hook_ivt.asm).
+I've added this entire code as a sepeate file in this repository [here](clock_hook.asm).
 
 ## Exercise - analyzing a ransomware MBR payload
 As a final exercise, let's completely analyze the destructive malware [described in Microsoft's blogpost](https://www.microsoft.com/en-us/security/blog/2022/01/15/destructive-malware-targeting-ukrainian-organizations/). I will analyze the file [a196c6b8ffcb97ffb276d04f354696e2391311db3841ae16c8c9f56f36a38e92](https://www.virustotal.com/gui/file/a196c6b8ffcb97ffb276d04f354696e2391311db3841ae16c8c9f56f36a38e92/).  
