@@ -277,3 +277,19 @@ Let's examine what we've done:
 - The `routine_timer_hook` routine is quite simple: it prints a message and then calls the original routine that was saved in `data_original_isr`, by pushing the old entry's `cs` and `ip` registers to the stack and then performing `retf`, which pops those two values into `cs:ip`.
 
 Note that hooking the interrupt vector table was used in the past extensively for bootkit purposes.
+
+## Exercise - analyzing a ransomware MBR payload
+As a final exercise, let's completely analyze the destructive malware [described in Microsoft's blogpost](https://www.microsoft.com/en-us/security/blog/2022/01/15/destructive-malware-targeting-ukrainian-organizations/). I will analyze the file [a196c6b8ffcb97ffb276d04f354696e2391311db3841ae16c8c9f56f36a38e92](https://www.virustotal.com/gui/file/a196c6b8ffcb97ffb276d04f354696e2391311db3841ae16c8c9f56f36a38e92/).  
+Extracting the MBR from IDA was easy - simply looking for the malicious strings shows the following pseudo code part in `sub_403B60`:
+```c
+HANDLE hFile;
+hFile = CreateFileW(L"\\\\.\\PhysicalDrive0", 0x10000000, 3, NULL, 3, 0, NULL);
+WriteFile(hFile, g_mbr_buf, 0x200, NULL, NULL);
+CloseHandle(hFile);
+```
+
+As you can see, we're *writing* to `\\.\PhysicalDrive0`, which points to the `MBR`. The `0x200` is the 512 bytes of the new MBR - neat!  
+Let's disassemble the buffer written, rebasing it to address `0x7C00`:
+
+```assembly
+```
