@@ -131,3 +131,9 @@ This seems a lot to unpack, but not really:
 - Finally, in `routine_print_char` we call `int 10h` with `ah=0x0e` (teletype printing) and make sure we print to page 0 with a gray foreground.
 - The `data_my_msg` is a data label that holds the message we'd like to print.
 - The end of our bootloader fills `510 - (size of code and data)` with zeros, and then writes `\x55\xAA` (note it's Little Endian so we define a WORD with `dw` to be `0xAA55`).
+
+Assembling is easy with NASM:
+```shell
+nasm -fbin -oboot.img boot.asm
+```
+You can debug this "bootloader" with appropriate emulators like `qemu` or [Bochs](https://bochs.sourceforge.io/) (my personal favorite) - simply attach the `boot.img` file you assembled to a virtual 1.44Mb Floppy Disk and boot from there. You should see our message appearing!
