@@ -34,6 +34,7 @@ As I mentioned, the `MBR` is mostly responsible for loading further code from di
 - Stage 1.5: `boot.img` loads `core.img` from disk (specifically, between the `MBR` and the first disk partition).
 - Stage 2.5 `core.img` (which was loaded by the `MBR`) loads `/boot/grub/i386-pc/normal.mod`.
 - After `normal.mod` is loaded, it parses `/boot/grub/grub.cfg` and acts according to the grub configuration file.
+
 Note this requires parsing a filesystem, and specifically - *loading data from disk*. This is commonly achieved by *software interrupts*.  
 Remember I mentioned the BIOS sets us software interrupts? This is where they come handy. There are many interesting interrupts that can be used by bootloaders.  
 The best documentation I remember was [Ralf Brown's Interrupt List](https://www.ctyme.com/rbrown.htm). Common interrupts used by bootloaders include:
