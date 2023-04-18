@@ -292,4 +292,37 @@ As you can see, we're *writing* to `\\.\PhysicalDrive0`, which points to the `MB
 Let's disassemble the buffer written, rebasing it to address `0x7C00`:
 
 ```assembly
+	jmp     short $+2
+lbl_start:
+	mov     ax, cs
+	mov     ds, ax
+	mov     si, 7C88h
+	call    $+3
+	push    ax
+	cld
+	
+lbl_next_char:
+	mov     al, [si]
+	cmp     al, 0
+	jz      short lbl_found_nul
+	call    routine_print_char
+	inc     si
+	jmp     short lbl_next_char
+lbl_found_nul:
+	jmp     short lbl_next_phase
 ```
+
+The first instruction is equivalent to a `nop` really - just jumps to the next instruction.  
+Under `lbl_start`, we set `ds` (the data segment selector) to be equal to `cs` (the code selector) using the `ax` register (since you can't do `mov ds, cs`).  
+The `si` register points to `0x7C88`, which contains a string:
+```
+db Your hard drive has been corrupted.',0Dh,0Ah
+db 'In case you want to recover all hard drives',0Dh,0Ah
+db 'of your organization,',0Dh,0Ah
+db 'You should pay us  $10k via bitcoin wallet',0Dh,0Ah
+db '1AVNM68gj6PGPFcJuftKATa4WLnzg8fpfv and send message via',0Dh,0Ah
+db 'tox ID 8BEDC411012A33BA34F49130D0F186993C6A32DAD8976F6A5D82C1ED23054C057ECED5496F65',0Dh,0Ah
+db 'with your organization name.',0Dh,0Ah
+db 'We will contact you to give further instructions.,0
+```
+
