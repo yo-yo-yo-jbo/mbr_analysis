@@ -355,6 +355,18 @@ The next chunk of assembly is:
 The first two instructions again set the `ds` register to be equal to `cs` - this hints the MBR payload was stitched together by multiple sources, because this part somehow does not assume `ds`, even though it was set before.  
 Everything else is preparation for a complex `int 0x13` operation which writes to disk:
 - The `ah` value of `0x43` tells the interrupt that this should be an [extended write operation](http://www.ctyme.com/intr/rb-0710.htm).
-- The `dl` register is the drive number. The value `0x80` has the MSB up, which is disk 0, but TBD.
+- The `dl` register is the drive number. The value `0x80` specifies the first HDD.
 - The `al` register is a "verify flag", which is set to 0 (no verification).
-- The pair `ds:si` point to the buffer we're going to write - which is address `0x7C72`
+- The pair `ds:si` is address `0x7C72`, which is the `Disk Address Packet (DAP)`.
+
+Disk Address Packets have a unique structure, which I'd like to describe using C:
+```c
+typedef struct _DAP
+{
+	uint8_t cb;		// The size of the DAP (0x10)
+	uint8_t unused;		// Unused (should be zero)
+	uint16_t n_sectors;	// The number of sectors to write
+	uint32_t buff_ptr;	// Points to the segment:offset write from
+	uint64_t sec_number;	// Absolute number of the start of the sectors to be written
+} DAP;
+```
