@@ -363,10 +363,23 @@ Disk Address Packets have a unique structure, which I'd like to describe using C
 ```c
 typedef struct _DAP
 {
-	uint8_t cb;		// The size of the DAP (0x10)
-	uint8_t unused;		// Unused (should be zero)
-	uint16_t n_sectors;	// The number of sectors to write
-	uint32_t buff_ptr;	// Points to the segment:offset write from
-	uint64_t sec_number;	// Absolute number of the start of the sectors to be written
+	uint8_t cb;		// Offset 0x00: the size of the DAP (0x10)
+	uint8_t unused;		// Offset 0x01: unused (should be zero)							
+	uint16_t n_sectors;	// Offset 0x02: the number of sectors to write
+	uint32_t buff_ptr;	// Offset 0x04: points to the segment:offset write from
+	uint64_t sec_number;	// Offset 0x08: absolute number of the start of the sectors to be written
 } DAP;
 ```
+
+Note that if `0x7C72` is the start of the `DAP` (indeed the byte there is `0x10`), then it explains a few earlier instructions:
+- `mov     word ptr ds:7C78h, ax` writes the `segment` part in the `buff_ptr` (6 bytes into the `DAP`).
+- `mov     dword ptr ds:7C76h, 7C82h` writes the `offset` in the `buff_ptr` to be `0x7C82` (4 bytes into the `DAP`).
+
+Referring to address `0x7C72` as a `DAP` reveals:
+- `cb` is `0x10`.
+- `unused` is `0`.
+- `n_sectors` is `1`.
+- `buff_ptr` points to `0:0`.
+- `sec_number` is  `1`.
+ 
+This eseentially trashes one sector with address `0:0`, which is the `IVT` and contains no usable data for later booting.
