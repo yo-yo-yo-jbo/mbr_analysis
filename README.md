@@ -4,3 +4,7 @@ In recent years, we've seen interesting MBR payloads, ranging from [ransomware](
 While new technologies ([UEFI](https://en.wikipedia.org/wiki/UEFI)) makes MBR payloads obsolete, the sad reality is that old BIOS-style boot sequences are still commonly used.  
 This blogpost reverse engineers MBR payloads - I really like old real mode Assembly, so the MBR payloads are a nice opportunity. Let's go!
 
+## What is an MBR even?
+In the old days before UEFI, the first code to run was the [BIOS](https://en.wikipedia.org/wiki/BIOS), which is a piece of software (firmware).
+The BIOS had several responsibilities:
+- 
