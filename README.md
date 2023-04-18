@@ -289,7 +289,7 @@ CloseHandle(hFile);
 ```
 
 As you can see, we're *writing* to `\\.\PhysicalDrive0`, which points to the `MBR`. The `0x200` is the 512 bytes of the new MBR - neat!  
-Let's disassemble the buffer written, rebasing it to address `0x7C00`:
+Let's disassemble the buffer written, rebasing it to address `0x7C00` (I renamed labels for convenience):
 
 ```assembly
 	jmp     short $+2
@@ -301,21 +301,26 @@ lbl_start:
 	push    ax
 	cld
 	
-lbl_next_char:
+routine_print_string:
 	mov     al, [si]
 	cmp     al, 0
 	jz      short lbl_found_nul
 	call    routine_print_char
 	inc     si
-	jmp     short lbl_next_char
+	jmp     short routine_print_string
 lbl_found_nul:
 	jmp     short lbl_next_phase
+
+routine_print_char:
+	mov     ah, 0Eh
+	int     10h
+	retn
 ```
 
 The first instruction is equivalent to a `nop` really - just jumps to the next instruction.  
 Under `lbl_start`, we set `ds` (the data segment selector) to be equal to `cs` (the code selector) using the `ax` register (since you can't do `mov ds, cs`).  
 The `si` register points to `0x7C88`, which contains a string:
-```
+```assembly
 db Your hard drive has been corrupted.',0Dh,0Ah
 db 'In case you want to recover all hard drives',0Dh,0Ah
 db 'of your organization,',0Dh,0Ah
@@ -325,4 +330,7 @@ db 'tox ID 8BEDC411012A33BA34F49130D0F186993C6A32DAD8976F6A5D82C1ED23054C057ECED
 db 'with your organization name.',0Dh,0Ah
 db 'We will contact you to give further instructions.,0
 ```
-
+The `call $+3` and `push ax` effectively pushes `cs:ip` as `cs:0x7C0C` (remember `call` pushes the return address to the stack).  
+Then, we see something familiar - `cld` (clearing the direction flag) followed by printing of characters (`routine_print_string`).  
+While the code is slightly different, you can see a comparison of `al` and 0 (which is the NUL terminator) and calling `routine_print_char` if it's not zero.  
+The `routine_print_char` simply calls `int 0x10` as we've previously seen.
