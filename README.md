@@ -137,3 +137,7 @@ Assembling is easy with NASM:
 nasm -fbin -oboot.img boot.asm
 ```
 You can debug this "bootloader" with appropriate emulators like `qemu` or [Bochs](https://bochs.sourceforge.io/) (my personal favorite) - simply attach the `boot.img` file you assembled to a virtual 1.44Mb Floppy Disk and boot from there. You should see our message appearing!
+
+## Experiment - hooking interrupts
+Interrupts are saved in an `Interupt Vector Table (IVT)` starting at address 0, with each entry having a size of 2 WORDS (so, 4 byttes). This means that the entire region of `0x0000 - 0x03FF` is reserved for that table.  
+Why does every entry have 2 WORDs? Because every entry is a `FAR call`. Do you remember I said our memory is segmented? Our code doesn't really run from the `ip` register - it runs from `cs:ip`. The real address our code runs in is `0x10 * CS + IP`. A call that changes both `cs` and `ip` is called a `FAR Call`, and as the name suggests - can be used to start running code in a region far from our own.
