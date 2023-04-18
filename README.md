@@ -344,7 +344,7 @@ The next chunk of assembly is:
 	mov     dword ptr ds:7C76h, 7C82h
 	mov     ah, 43h ; 'C'
 	mov     al, 0
-	mov     dl, ds:byte_7C74+13h
+	mov     dl, ds:7C87h
 	add     dl, 80h
 	mov     si, 7C72h
 	int     13h             ; DISK - IBM/MS Extension - EXTENDED WRITE (DL - drive, AL - verify flag, DS:SI - disk address packet)
@@ -355,7 +355,7 @@ The next chunk of assembly is:
 The first two instructions again set the `ds` register to be equal to `cs` - this hints the MBR payload was stitched together by multiple sources, because this part somehow does not assume `ds`, even though it was set before.  
 Everything else is preparation for a complex `int 0x13` operation which writes to disk:
 - The `ah` value of `0x43` tells the interrupt that this should be an [extended write operation](http://www.ctyme.com/intr/rb-0710.htm).
-- The `dl` register is the drive number. The value `0x80` specifies the first HDD.
+- The `dl` register is the drive number. The value `0x80` specifies the first HDD, but note it's *added* to the byte extracted from address `0x7C87`. More on that later.
 - The `al` register is a "verify flag", which is set to 0 (no verification).
 - The pair `ds:si` is address `0x7C72`, which is the `Disk Address Packet (DAP)`.
 
@@ -371,15 +371,13 @@ typedef struct _DAP
 } DAP;
 ```
 
-Note that if `0x7C72` is the start of the `DAP` (indeed the byte there is `0x10`), then it explains a few earlier instructions:
-- `mov     word ptr ds:7C78h, ax` writes the `segment` part in the `buff_ptr` (6 bytes into the `DAP`).
-- `mov     dword ptr ds:7C76h, 7C82h` writes the `offset` in the `buff_ptr` to be `0x7C82` (4 bytes into the `DAP`).
+Note that if `0x7C72` is the start of the `DAP` (indeed the byte there is `0x10`), then it explains a few earlier instructions.  
+Basically, the `mov` isntructions writing to that area set various fields in the `DAP` with the purpose of trashing the disk sectors.  
+I believe the writers do have a couple of bugs in their code (that do not affect its purpose to trash the disk) - see if you can spot them!
 
-Referring to address `0x7C72` as a `DAP` reveals:
-- `cb` is `0x10`.
-- `unused` is `0`.
-- `n_sectors` is `1`.
-- `buff_ptr` points to `0:0`.
-- `sec_number` is  `1`.
- 
-This eseentially trashes one sector with address `0:0`, which is the `IVT` and contains no usable data for later booting.
+After `int 0x13` is done, the result is saved in the `carry flag` - so we see `jb` and `jnb` being used - `jnb`:
+- If the call fails, `jb` is taken and address `0x7C87` increases by one - which essentially moves to the next hard drive (this affects the value of `dl` before calling the interrupt).
+- If the call succeeds, `jnb` is taken and the sector number (`sec_number`) is increased to trash the next sector.
+
+Both of those jump to `lbl_next_phase` which really just trashes all sectors in all disks, forever.
+
