@@ -13,7 +13,7 @@ The BIOS reads the first sector (512 bytes) of the device and compares the last 
 2. We usually refer to 16-bit registers (e.g. `ax`, `bx` and so on).
 Well, that 512 byte sector ending with `\x55\xAA` is referred as the `MBR`, which stands for `Master Boot Record`.
 
-## Experiment - viewing your Windows MBR
+## Experiment - viewing your MBR
 To support both UEFI and old MBR, Windows sets up the MBR. You can dump it even with Python (run elevated):
 ```python
 import binascii
@@ -23,4 +23,5 @@ with open(r'\\.\physicaldrive0', 'rb') as f:
 
 print(binascii.hexlify(c))
 ```
-Note how your MBR ends with `55aa`.
+Note how your MBR ends with `55aa`.  
+For Linux, you could read the first `512` bytes from `/dev/sda` (or whatever boot device you used) similarly.
