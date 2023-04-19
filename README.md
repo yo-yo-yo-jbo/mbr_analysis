@@ -374,13 +374,15 @@ typedef struct _DAP
 
 Note that if `0x7C72` is the start of the `DAP` (indeed the byte there is `0x10`), then it explains a few earlier instructions.  
 Basically, the `mov` isntructions writing to that area set various fields in the `DAP` with the purpose of trashing the disk sectors.  
-I believe the writers do have a couple of bugs in their code (that do not affect its purpose to trash the disk) - see if you can spot them!
+Specifically, the `buff_ptr` is set to `0:0x7c82`, which really just contains 5 'A' characters and then the message we saw on the screen. For all means and purposes, any data would've worked - the purpose is just to trash the disk and nothing more.
 
 After `int 0x13` is done, the result is saved in the `carry flag` - so we see `jb` and `jnb` being used - `jnb`:
 - If the call fails, `jb` is taken and address `0x7C87` increases by one - which essentially moves to the next hard drive (this affects the value of `dl` before calling the interrupt).
 - If the call succeeds, `jnb` is taken and the sector number (`sec_number`) is increased to trash the next sector.
 
 Both of those jump to `lbl_next_phase` which really just trashes all sectors in all disks, forever.
+
+Lastly, I'd like to note the payload we extracted does indeed finish with the `\x55\xAA` bytes, to make it bootable.
 
 ## Summary
 In this blogpost we got a taste of 16-bit real mode assembly.  
