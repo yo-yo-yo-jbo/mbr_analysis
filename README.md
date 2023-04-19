@@ -280,7 +280,7 @@ Note that hooking the interrupt vector table was used in the past extensively fo
 I've added this entire code as a sepeate file in this repository [here](clock_hook.asm).
 
 ## Exercise - analyzing a ransomware MBR payload
-As a final exercise, let's completely analyze the destructive malware [described in Microsoft's blogpost](https://www.microsoft.com/en-us/security/blog/2022/01/15/destructive-malware-targeting-ukrainian-organizations/). I will analyze the file [a196c6b8ffcb97ffb276d04f354696e2391311db3841ae16c8c9f56f36a38e92](https://www.virustotal.com/gui/file/a196c6b8ffcb97ffb276d04f354696e2391311db3841ae16c8c9f56f36a38e92/).  
+As a final exercise, let's completely analyze the destructive malware [described in Microsoft's blogpost](https://www.microsoft.com/en-us/security/blog/2022/01/15/destructive-malware-targeting-ukrainian-organizations/). I will analyze the file [a196c6b8ffcb97ffb276d04f354696e2391311db3841ae16c8c9f56f36a38e92](https://www.virustotal.com/gui/file/a196c6b8ffcb97ffb276d04f354696e2391311db3841ae16c8c9f56f36a38e92/). I've extracted the MBR payload and uploaded it [here](mbr.bin) for reference.  
 Extracting the MBR from IDA was easy - simply looking for the malicious strings shows the following pseudo code part in `sub_403B60`:
 ```c
 HANDLE hFile;
